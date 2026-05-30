@@ -170,11 +170,7 @@ td.comment input{text-align:left}
 
 <body>
 
-<div id="splash" style="position:fixed;inset:0;background:white;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
-  <img src="logo_fo_r_t.png" alt="FO" style="max-height:130px;margin-bottom:20px;">
-  <h1 style="color:#c00000;font-family:Arial;margin:0;">FO Castmetal</h1>
-  <p style="font-family:Arial;color:#333;font-weight:bold;">Gestion des heures de délégation</p>
-</div>
+
 
 <div class="app">
 
@@ -567,16 +563,7 @@ function logout(){
   document.getElementById("loginCard").classList.remove("hidden");
 }
 init();
-<script>
-window.addEventListener("load", function(){
-  setTimeout(function(){
-    const splash = document.getElementById("splash");
-    if(splash){
-      splash.style.display = "none";
-    }
-  }, 1200);
-});
-</script>
+
   
 </body>
 </html>
