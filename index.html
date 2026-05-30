@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FO Castmetal - Heures de délégation</title>
+<style>
+:root{
+  --red:#c00000;
+  --dark:#1f1f1f;
+  --bg:#f4f4f6;
+  --card:#ffffff;
+  --line:#d9d9d9;
+  --soft:#f2f2f2;
+  --ok:#2e7d32;
+  --warn:#c00000;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:#111;
+  font-family:Arial, Helvetica, sans-serif;
+}
+.app{
+  max-width:980px;
+  margin:0 auto;
+  padding:14px;
+}
+.card{
+  background:var(--card);
+  border-radius:18px;
+  box-shadow:0 8px 22px rgba(0,0,0,.08);
+  padding:18px;
+  margin-bottom:16px;
+}
+.header{
+  background:var(--red);
+  color:white;
+  padding:16px;
+  border-radius:16px;
+  text-align:center;
+  font-weight:900;
+  font-size:22px;
+  letter-spacing:.2px;
+  margin-bottom:16px;
+}
+label{
+  display:block;
+  margin:12px 0 6px;
+  font-weight:800;
+  color:#555;
+}
+input,select,textarea{
+  width:100%;
+  border:2px solid #ddd;
+  border-radius:12px;
+  background:white;
+  font-size:18px;
+  padding:13px;
+}
+button{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:16px;
+  font-size:18px;
+  font-weight:900;
+  color:white;
+  background:var(--red);
+  margin-top:12px;
+  cursor:pointer;
+}
+button.secondary{background:#222}
+button.gray{background:#777}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.small{font-size:14px;color:#666;line-height:1.4}
+.hidden{display:none!important}
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin:12px 0;
+}
+.kpi{
+  background:#f7f7f7;
+  border-left:5px solid var(--red);
+  border-radius:10px;
+  padding:10px;
+}
+.kpi b{display:block;font-size:13px;color:#555}
+.kpi span{font-size:20px;font-weight:900}
+.kpi .ok{color:var(--ok)}
+.kpi .warn{color:var(--warn)}
+.table-wrap{overflow-x:auto;margin-top:10px;border-radius:12px;border:1px solid var(--line)}
+table{
+  width:100%;
+  min-width:820px;
+  border-collapse:collapse;
+  background:white;
+}
+th,td{
+  border:1px solid var(--line);
+  padding:7px;
+  text-align:center;
+  font-size:14px;
+}
+th{
+  background:var(--red);
+  color:white;
+  font-weight:900;
+}
+td input,td select{
+  font-size:14px;
+  padding:8px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+td.comment input{text-align:left}
+.off{
+  background:#e7e7e7!important;
+  color:#555;
+}
+.deleg{
+  background:#fff4e6!important;
+}
+.okline{
+  background:#f5fff5!important;
+}
+.tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:14px;
+}
+.tabs button{
+  margin:0;
+  padding:12px;
+  border-radius:12px;
+  background:#222;
+}
+.tabs button.active{background:var(--red)}
+.notice{
+  background:#fff2cc;
+  border-left:5px solid #e6a700;
+  padding:10px;
+  border-radius:10px;
+  margin:10px 0;
+  color:#333;
+}
+@media(max-width:700px){
+  .app{padding:10px}
+  .card{padding:14px;border-radius:16px}
+  .header{font-size:19px}
+  .grid2,.grid3,.kpis{grid-template-columns:1fr}
+  input,select,textarea{font-size:17px}
+  th,td{font-size:13px}
+}
+@media print{
+  body{background:white}
+  .no-print{display:none!important}
+  .card{box-shadow:none;border-radius:0;padding:0}
+  .app{max-width:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="card no-print" id="loginCard">
+    <div class="header">FO Castmetal - Connexion délégation</div>
+    <label>Prénom</label>
+    <select id="loginPrenom">
+      <option value="">Choisir...</option>
+      <option>Karim</option>
+      <option>Sébastien</option>
+      <option>Laurent</option>
+      <option>Sandro</option>
+    </select>
+
+    <label>Code</label>
+    <input id="loginCode" type="password" placeholder="Code confidentiel">
+
+    <div class="grid2">
+      <div>
+        <label>Mois</label>
+        <select id="loginMois"></select>
+      </div>
+      <div>
+        <label>Année</label>
+        <input id="loginAnnee" inputmode="numeric" type="number" min="2026" max="2035">
+      </div>
+    </div>
+
+    <button onclick="connexion()">Ouvrir le calendrier</button>
+    <p class="small">Code commun : Les données sont enregistrées localement dans le téléphone/navigateur utilisé.</p>
+  </div>
+
+  <div id="mainApp" class="hidden">
+    <div class="tabs no-print">
+      <button id="tabCalendarBtn" class="active" onclick="showTab('calendar')">Calendrier</button>
+      <button id="tabArchivesBtn" onclick="showTab('archives')">Archives</button>
+    </div>
+
+    <section id="calendarTab">
+      <div class="card">
+        <div class="header" id="calendarTitle">Feuille mensuelle heures de délégation FO</div>
+
+        <div class="kpis">
+          <div class="kpi"><b>Prénom</b><span id="kpiPrenom">-</span></div>
+          <div class="kpi"><b>Droit mensuel</b><span id="kpiDroit">0h</span></div>
+          <div class="kpi"><b>Total délégation</b><span id="kpiDeleg">0h</span></div>
+          <div class="kpi"><b>Reste</b><span id="kpiReste" class="ok">0h</span></div>
+        </div>
+
+        <div class="notice no-print">
+          Exemple : journée 13h-21h = 8h. Si tu mets 2h de délégation, le travail réel passe automatiquement à 6h.
+        </div>
+
+        <div class="table-wrap">
+          <table id="calendarTable"></table>
+        </div>
+
+        <div class="grid3 no-print">
+          <button onclick="saveMonth()" class="secondary">Enregistrer</button>
+          <button onclick="prepareMail()">Envoyer boîte mail FO</button>
+          <button onclick="resetMonth()" class="gray">Réinitialiser mois</button>
+        </div>
+        <button onclick="logout()" class="secondary no-print">Déconnexion</button>
+      </div>
+    </section>
+
+    <section id="archivesTab" class="hidden">
+      <div class="card">
+        <div class="header">Consultation archives FO</div>
+
+        <div class="grid3 no-print">
+          <div>
+            <label>Prénom</label>
+            <select id="archivePrenom">
+              <option>Karim</option>
+              <option>Sébastien</option>
+              <option>Laurent</option>
+              <option>Sandro</option>
+            </select>
+          </div>
+          <div>
+            <label>Mois</label>
+            <select id="archiveMois"></select>
+          </div>
+          <div>
+            <label>Année</label>
+            <input id="archiveAnnee" inputmode="numeric" type="number" min="2026" max="2035">
+          </div>
+        </div>
+
+        <button class="no-print" onclick="loadArchive()">Afficher archive</button>
+
+        <div class="kpis">
+          <div class="kpi"><b>Droit</b><span id="archDroit">-</span></div>
+          <div class="kpi"><b>Total délégation</b><span id="archDeleg">-</span></div>
+          <div class="kpi"><b>Reste</b><span id="archReste">-</span></div>
+          <div class="kpi"><b>Résultat</b><span id="archResult">-</span></div>
+        </div>
+
+        <div class="table-wrap">
+          <table id="archiveTable">
+            <tr><th>Date</th><th>Horaire</th><th>Total journée</th><th>Délégation</th><th>Travail réel</th><th>Statut</th><th>Commentaire</th></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+</div>
+
+<script>
+const RIGHTS = {"Karim":21,"Sébastien":21,"Laurent":21,"Sandro":38};
+const MONTHS = [
+  ["1","Janvier"],["2","Février"],["3","Mars"],["4","Avril"],["5","Mai"],["6","Juin"],
+  ["7","Juillet"],["8","Août"],["9","Septembre"],["10","Octobre"],["11","Novembre"],["12","Décembre"]
+];
+const HOURS = ["M","A","N","J","Repos / non travaille"];
+const STATUSES = ["Present","Delegation","RTT","Conge paye","Maladie","Anciennete","Formation","Repos"];
+let state = {prenom:"", mois:0, annee:0, droit:0};
+
+function init(){
+  fillMonths("loginMois");
+  fillMonths("archiveMois");
+  const d = new Date();
+  document.getElementById("loginMois").value = String(d.getMonth()+1);
+  document.getElementById("archiveMois").value = String(d.getMonth()+1);
+  document.getElementById("loginAnnee").value = d.getFullYear() < 2026 ? 2026 : d.getFullYear();
+  document.getElementById("archiveAnnee").value = document.getElementById("loginAnnee").value;
+}
+function fillMonths(id){
+  const sel = document.getElementById(id);
+  sel.innerHTML = MONTHS.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join("");
+}
+function monthName(m){
+  return MONTHS.find(x=>x[0] == String(m))?.[1] || m;
+}
+function pad(n){return String(n).padStart(2,"0")}
+function parseH(v){
+  if(v === null || v === undefined) return 0;
+  const n = parseFloat(String(v).replace(",","."));
+  return isNaN(n) ? 0 : n;
+}
+function fmt(n){
+  return Number(n).toFixed(2).replace(".",",").replace(",00","");
+}
+function isFerie(date){
+  const d = pad(date.getDate())+"/"+pad(date.getMonth()+1);
+  return ["01/01","01/05","08/05","14/07","15/08","01/11","11/11","25/12"].includes(d);
+}
+function isOff(date){
+  const day = date.getDay();
+  return day === 0 || day === 6 || isFerie(date);
+}
+function key(){
+  return `FO_MONTH_${state.prenom}_${state.annee}_${state.mois}`;
+}
+function archiveKey(){
+  return "FO_ARCHIVES_FULL";
+}
+function connexion(){
+  const prenom = document.getElementById("loginPrenom").value;
+  const code = document.getElementById("loginCode").value.trim();
+  const mois = parseInt(document.getElementById("loginMois").value,10);
+  const annee = parseInt(document.getElementById("loginAnnee").value,10);
+
+  if(!prenom){ alert("Choisis un prénom."); return; }
+  document.getElementById("loginCard").classList.add("hidden");
+  if(code.toUpperCase() !== atob("Q01D")){ alert("Code incorrect."); return; }
+  if(!mois || mois < 1 || mois > 12){ alert("Mois invalide."); return; }
+  if(!annee || annee < 2026 || annee > 2035){ alert("Année invalide."); return; }
+
+  state = {prenom, mois, annee, droit: RIGHTS[prenom] || 21};
+  document.getElementById("loginCard").classList.add("hidden");
+  document.getElementById("mainApp").classList.remove("hidden");
+  document.getElementById("archivePrenom").value = prenom;
+  document.getElementById("archiveMois").value = String(mois);
+  document.getElementById("archiveAnnee").value = annee;
+  generateCalendar();
+} function getISOWeek(date){
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+function horaireAuto(prenom, date){
+  const semaine = getISOWeek(date);
+  const paire = semaine % 2 === 0;
+
+  if(prenom === "Laurent"){
+    return paire ? "M" : "A";
+  }
+
+  if(prenom === "Sandro" || prenom === "Sébastien"){
+    return paire ? "M" : "N";
+  }
+
+  return "M";
+}
+function generateCalendar(){
+  document.getElementById("calendarTitle").textContent = `Feuille mensuelle heures de délégation FO - ${state.prenom} - ${monthName(state.mois)} ${state.annee}`;
+  document.getElementById("kpiPrenom").textContent = state.prenom;
+  document.getElementById("kpiDroit").textContent = `${state.droit}h`;
+
+  let saved = {};
+  try{ saved = JSON.parse(localStorage.getItem(key()) || "{}"); }catch(e){ saved = {}; }
+
+  const days = new Date(state.annee, state.mois, 0).getDate();
+  let html = `<tr><th>Date</th><th>Horaire</th><th>Total journée</th><th>Délégation</th><th>Travail réel</th><th>Statut</th><th>Commentaire</th></tr>`;
+
+  for(let j=1;j<=days;j++){
+    const d = new Date(state.annee, state.mois-1, j);
+    const dateStr = `${pad(j)}/${pad(state.mois)}/${state.annee}`;
+    const rec = saved[j] || {};
+    const off = isOff(d);
+    const horaire = rec.horaire ?? (off ? "Repos / non travaille" : horaireAuto(state.prenom, d));
+    const total = rec.total ?? (off ? 0 : 8);
+    const deleg = rec.deleg ?? 0;
+    const statut = rec.statut ?? (off ? "Repos" : "Present");
+    const comm = rec.commentaire ?? "";
+    const travail = Math.max(0, parseH(total) - parseH(deleg));
+    const cls = off ? "off" : (parseH(deleg)>0 ? "deleg" : "okline");
+
+    html += `<tr class="${cls}">
+      <td>${dateStr}</td>
+      <td><select data-day="${j}" data-field="horaire" onchange="onEdit(${j})">${options(HOURS,horaire)}</select></td>
+      <td><input data-day="${j}" data-field="total" inputmode="decimal" value="${total}" oninput="onEdit(${j})"></td>
+      <td><input data-day="${j}" data-field="deleg" inputmode="decimal" value="${deleg}" oninput="onEdit(${j})"></td>
+      <td><b id="work_${j}">${fmt(travail)}</b>h</td>
+      <td><select data-day="${j}" data-field="statut" onchange="onEdit(${j})">${options(STATUSES,statut)}</select></td>
+      <td class="comment"><input data-day="${j}" data-field="commentaire" value="${escapeHtml(comm)}" oninput="onEdit(${j})"></td>
+    </tr>`;
+  }
+  document.getElementById("calendarTable").innerHTML = html;
+  updateSummary();
+}
+function options(arr, selected){
+  return arr.map(v=>`<option value="${v}" ${v==selected?'selected':''}>${v}</option>`).join("");
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+}
+function readMonth(){
+  const days = new Date(state.annee, state.mois, 0).getDate();
+  const data = {};
+  for(let j=1;j<=days;j++){
+    const fields = document.querySelectorAll(`[data-day="${j}"]`);
+    data[j] = {};
+    fields.forEach(el=>data[j][el.dataset.field]=el.value);
+    data[j].travail = Math.max(0, parseH(data[j].total)-parseH(data[j].deleg));
+    data[j].date = `${pad(j)}/${pad(state.mois)}/${state.annee}`;
+  }
+  return data;
+}
+function onEdit(day){
+  const row = {};
+  document.querySelectorAll(`[data-day="${day}"]`).forEach(el=>row[el.dataset.field]=el.value);
+  const travail = Math.max(0, parseH(row.total)-parseH(row.deleg));
+  document.getElementById(`work_${day}`).textContent = fmt(travail);
+  saveMonthSilent();
+  updateSummary();
+}
+function updateSummary(){
+  const data = readMonth();
+  let totalDeleg = 0;
+  Object.values(data).forEach(r=> totalDeleg += parseH(r.deleg));
+  const reste = state.droit - totalDeleg;
+  document.getElementById("kpiDeleg").textContent = `${fmt(totalDeleg)}h`;
+  const resteEl = document.getElementById("kpiReste");
+  resteEl.textContent = `${fmt(reste)}h`;
+  resteEl.className = reste < 0 ? "warn" : "ok";
+}
+function saveMonthSilent(){
+  localStorage.setItem(key(), JSON.stringify(readMonth()));
+}
+function saveMonth(){
+  saveMonthSilent();
+  alert("Mois enregistré sur cet appareil.");
+}
+function resetMonth(){
+  if(confirm("Réinitialiser ce mois ?")){
+    localStorage.removeItem(key());
+    generateCalendar();
+  }
+}
+function prepareMail(){
+  saveMonthSilent();
+  const data = readMonth();
+  let totalDeleg = 0;
+  let lines = [];
+
+  Object.values(data).forEach(r=>{
+  const d = parseH(r.deleg);
+  const statut = r.statut || "";
+  const commentaire = r.commentaire || "";
+
+  if(d > 0){
+    totalDeleg += d;
+  }
+
+  if(d > 0 || ["RTT","Conge paye","Maladie","Anciennete","Formation"].includes(statut)){
+    lines.push(`- ${r.date} | Statut : ${statut} | Horaire : ${r.horaire} | Total journee : ${fmt(parseH(r.total))}h | Delegation : ${fmt(d)}h | Travail reel : ${fmt(r.travail)}h | Commentaire : ${commentaire}`);
+  }
+});
+
+  const reste = state.droit - totalDeleg;
+
+  let body = "";
+  body += "Bonjour,\n\n";
+  body += "Veuillez trouver ci-dessous ma declaration FO des heures de delegation.\n\n";
+  body += `Prenom : ${state.prenom}\n`;
+  body += `Mois : ${state.mois}/${state.annee}\n`;
+  body += `Droit mensuel : ${state.droit}h\n`;
+  body += `Total delegation prise : ${fmt(totalDeleg)}h\n`;
+  body += `Reste disponible : ${fmt(reste)}h\n\n`;
+  body += "Detail des journees avec delegation :\n\n";
+  body += lines.length ? lines.join("\n") : "Aucune delegation saisie.";
+  body += `\n\nCordialement,\n${state.prenom}`;
+
+  archiveCurrentMonth(totalDeleg, reste);
+
+  const subject = `Declaration heures de delegation FO - ${state.prenom} - ${state.mois}/${state.annee}`;
+  const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent("focastmetal@gmail.com")}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href =
+  "mailto:focastmetal@gmail.com" +
+  "?subject=" + encodeURIComponent(subject) +
+  "&body=" + encodeURIComponent(body);
+}
+function archiveCurrentMonth(totalDeleg, reste){
+  const archives = JSON.parse(localStorage.getItem(archiveKey()) || "[]");
+  const filtered = archives.filter(a => !(a.prenom===state.prenom && Number(a.mois)===Number(state.mois) && Number(a.annee)===Number(state.annee)));
+  filtered.push({
+    dateEnvoi: new Date().toISOString(),
+    prenom: state.prenom,
+    mois: state.mois,
+    annee: state.annee,
+    droit: state.droit,
+    totalDeleg,
+    reste,
+    data: readMonth()
+  });
+  localStorage.setItem(archiveKey(), JSON.stringify(filtered));
+}
+function showTab(tab){
+  document.getElementById("calendarTab").classList.toggle("hidden", tab!=="calendar");
+  document.getElementById("archivesTab").classList.toggle("hidden", tab!=="archives");
+  document.getElementById("tabCalendarBtn").classList.toggle("active", tab==="calendar");
+  document.getElementById("tabArchivesBtn").classList.toggle("active", tab==="archives");
+}
+function loadArchive(){
+  const prenom = document.getElementById("archivePrenom").value;
+  const mois = Number(document.getElementById("archiveMois").value);
+  const annee = Number(document.getElementById("archiveAnnee").value);
+  const archives = JSON.parse(localStorage.getItem(archiveKey()) || "[]");
+  const found = archives.find(a => a.prenom===prenom && Number(a.mois)===mois && Number(a.annee)===annee);
+
+  const table = document.getElementById("archiveTable");
+  table.innerHTML = `<tr><th>Date</th><th>Horaire</th><th>Total journée</th><th>Délégation</th><th>Travail réel</th><th>Statut</th><th>Commentaire</th></tr>`;
+
+  if(!found){
+    document.getElementById("archDroit").textContent = "-";
+    document.getElementById("archDeleg").textContent = "-";
+    document.getElementById("archReste").textContent = "-";
+    document.getElementById("archResult").textContent = "Aucune";
+    alert("Aucune archive trouvée sur cet appareil.");
+    return;
+  }
+
+  document.getElementById("archDroit").textContent = `${found.droit}h`;
+  document.getElementById("archDeleg").textContent = `${fmt(found.totalDeleg)}h`;
+  document.getElementById("archReste").textContent = `${fmt(found.reste)}h`;
+  document.getElementById("archResult").textContent = "Trouvée";
+
+  Object.values(found.data).forEach(r=>{
+    const cls = parseH(r.deleg)>0 ? "deleg" : (r.statut==="Repos" ? "off" : "");
+    table.innerHTML += `<tr class="${cls}">
+      <td>${r.date}</td><td>${r.horaire}</td><td>${fmt(parseH(r.total))}</td><td>${fmt(parseH(r.deleg))}</td><td>${fmt(parseH(r.travail))}</td><td>${r.statut}</td><td>${escapeHtml(r.commentaire || "")}</td>
+    </tr>`;
+  });
+}
+function logout(){
+  state = {prenom:"", mois:0, annee:0, droit:0};
+  document.getElementById("mainApp").classList.add("hidden");
+  document.getElementById("loginCard").classList.remove("hidden");
+}
+init();
+</script>
+</body>
+</html>
