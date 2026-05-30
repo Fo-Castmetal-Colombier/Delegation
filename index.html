@@ -568,12 +568,14 @@ function logout(){
 }
 init();
 <script>
-setTimeout(function(){
-  const splash = document.getElementById("splash");
-  if(splash){
-    splash.style.display = "none";
-  }
-}, 3000);
+window.addEventListener("load", function(){
+  setTimeout(function(){
+    const splash = document.getElementById("splash");
+    if(splash){
+      splash.style.display = "none";
+    }
+  }, 1200);
+});
 </script>
   
 </body>
