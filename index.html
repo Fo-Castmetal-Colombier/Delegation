@@ -395,7 +395,7 @@ function generateCalendar(){
     const statut = rec.statut ?? (off ? "Repos" : "Present");
     const comm = rec.commentaire ?? "";
     const travail = Math.max(0, parseH(total) - parseH(deleg));
-    const cls = off ? "off" : (parseH(deleg)>0 ? "deleg" : "okline");
+    const cls = statut === "Repos" ? "off" : (parseH(deleg)>0 ? "deleg" : "okline");
 
     html += `<tr class="${cls}">
       <td>${dateStr}</td>
