@@ -395,7 +395,7 @@ function generateCalendar(){
     const statut = rec.statut ?? (off ? "Repos" : "Present");
     const comm = rec.commentaire ?? "";
     const travail = Math.max(0, parseH(total) - parseH(deleg));
-    const cls = statut === "Repos" ? "off" : (parseH(deleg)>0 ? "deleg" : "okline");
+    const cls = (statut === "Repos" && horaire === "Repos / non travaille") ? "off" : (parseH(deleg)>0 ? "deleg" : "okline");
 
     html += `<tr class="${cls}">
       <td>${dateStr}</td>
@@ -548,7 +548,7 @@ function loadArchive(){
   document.getElementById("archResult").textContent = "Trouvée";
 
   Object.values(found.data).forEach(r=>{
-    const cls = parseH(r.deleg)>0 ? "deleg" : (r.statut==="Repos" ? "off" : "");
+    const cls = (r.statut === "Repos" && r.horaire === "Repos / non travaille") ? "off" : (parseH(r.deleg)>0 ? "deleg" : "okline");
     table.innerHTML += `<tr class="${cls}">
       <td>${r.date}</td><td>${r.horaire}</td><td>${fmt(parseH(r.total))}</td><td>${fmt(parseH(r.deleg))}</td><td>${fmt(parseH(r.travail))}</td><td>${r.statut}</td><td>${escapeHtml(r.commentaire || "")}</td>
     </tr>`;
