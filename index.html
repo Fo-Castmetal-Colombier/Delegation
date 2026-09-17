@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FO Castmetal - Heures de délégation</title>
-<!-- Version calculs corrigés 2026-09-17 -->
+<!-- Version quota strict : droit - délégation uniquement 2026-09-17 -->
 <link rel="manifest" href="site.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
@@ -75,7 +75,7 @@ td.comment input{text-align:left}.off{background:#e7e7e7!important;color:#555}.d
   <section id="calendarTab">
     <div class="card">
       <div class="header" id="calendarTitle">Feuille mensuelle heures de délégation FO</div>
-      <div class="notice">⚠️ Les heures de délégation doivent être réduites en fonction des jours d'absence du mois (RTT, congés, maladie, jours fériés, formation).</div>
+      <div class="notice">ℹ️ RTT, congés, maladie, jours fériés et formation sont indiqués à titre informatif. Seules les heures saisies dans la colonne « Délégation » sont déduites du droit mensuel.</div>
       <div class="kpis">
         <div class="kpi"><b>Prénom</b><span id="kpiPrenom">-</span></div>
         <div class="kpi"><b>Droit mensuel</b><span id="kpiDroit">0h</span></div>
@@ -254,11 +254,8 @@ function readMonth(){
 }
 function setSavedStatus(txt){el("saveStatus").textContent=txt}
 function onStatusChange(day, value){
-  // Une absence ne doit jamais être comptée comme heure de délégation.
-  if(["RTT","Conge paye","Maladie","Anciennete","Formation","Repos"].includes(value)){
-    const delegEl = document.querySelector(`[data-day="${day}"][data-field="deleg"]`);
-    if(delegEl) delegEl.value = "0";
-  }
+  // Le statut est uniquement indicatif : RTT, maladie, congé, etc.
+  // Il ne modifie jamais le quota de délégation.
   onEdit(day);
 }
 function onEdit(day){
