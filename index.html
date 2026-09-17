@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FO Castmetal - Heures de délégation</title>
+<!-- Version calculs corrigés 2026-09-17 -->
 <link rel="manifest" href="site.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
@@ -235,7 +236,7 @@ function generateCalendar(){
       <td><input data-day="${j}" data-field="total" inputmode="decimal" value="${escapeHtml(total)}" oninput="onEdit(${j})"></td>
       <td><input data-day="${j}" data-field="deleg" inputmode="decimal" value="${escapeHtml(deleg)}" oninput="onEdit(${j})"></td>
       <td><b id="work_${j}">${fmt(travail)}</b>h</td>
-      <td><select data-day="${j}" data-field="statut" onchange="onEdit(${j})">${options(STATUSES,statut)}</select></td>
+      <td><select data-day="${j}" data-field="statut" onchange="onStatusChange(${j}, this.value)">${options(STATUSES,statut)}</select></td>
       <td class="comment"><input data-day="${j}" data-field="commentaire" value="${escapeHtml(comm)}" oninput="onEdit(${j})"></td>
     </tr>`;
   }
@@ -252,6 +253,14 @@ function readMonth(){
   return data;
 }
 function setSavedStatus(txt){el("saveStatus").textContent=txt}
+function onStatusChange(day, value){
+  // Une absence ne doit jamais être comptée comme heure de délégation.
+  if(["RTT","Conge paye","Maladie","Anciennete","Formation","Repos"].includes(value)){
+    const delegEl = document.querySelector(`[data-day="${day}"][data-field="deleg"]`);
+    if(delegEl) delegEl.value = "0";
+  }
+  onEdit(day);
+}
 function onEdit(day){
   const row={};document.querySelectorAll(`[data-day="${day}"]`).forEach(el=>row[el.dataset.field]=el.value);
   document.getElementById(`work_${day}`).textContent=fmt(Math.max(0,parseH(row.total)-parseH(row.deleg)));
@@ -278,12 +287,27 @@ function calcTotals(data){
   return {totalDeleg,reste:state.droit-totalDeleg};
 }
 function updateSummary(){
-  const t=calcTotals(readMonth());el("kpiDeleg").textContent=`${fmt(t.totalDeleg)}h`;el("kpiReste").textContent=`${fmt(t.reste)}h`;el("kpiReste").className=t.reste<0?"warn":"ok";
+  const data = readMonth();
+  const totals = getTotals(data);
+  const totalDeleg = totals.totalDeleg;
+  const reste = totals.reste;
+
+  document.getElementById("kpiDeleg").textContent = `${fmt(totalDeleg)}h`;
+  const resteEl = document.getElementById("kpiReste");
+  resteEl.textContent = `${fmt(reste)}h`;
+  resteEl.className = reste < 0 ? "warn" : "ok";
 }
 function saveMonthSilent(){localStorage.setItem(key(),JSON.stringify(readMonth()))}
 function saveMonth(){
-  saveMonthSilent();const t=calcTotals(readMonth());archiveCurrentMonth(t.totalDeleg,t.reste);
-  setSavedStatus("✓ Enregistré et archivé");alert("Mois enregistré et archivé sur cet appareil.");
+  saveMonthSilent();
+
+  const totals = getTotals(readMonth());
+  archiveCurrentMonth(totals.totalDeleg, totals.reste);
+
+  const status = document.getElementById("saveStatus");
+  if(status) status.textContent = "✓ Enregistré et archivé";
+
+  alert("Mois enregistré et archivé sur cet appareil.");
 }
 function resetMonth(){
   if(confirm("Réinitialiser ce mois ? Cette action efface la saisie courante, mais pas une archive déjà créée.")){localStorage.removeItem(key());generateCalendar()}
