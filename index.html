@@ -63,7 +63,7 @@ td.comment input{text-align:left}.off{background:#e7e7e7!important;color:#555}.d
     <div><label>Année</label><input id="loginAnnee" inputmode="numeric" type="number" min="2026" max="2035" value="2026"></div>
   </div>
   <button id="loginButton" type="button" onclick="connexion()">Ouvrir le calendrier</button>
-  <p class="small">Les données sont enregistrées localement dans le téléphone/navigateur utilisé.</p>
+  <p class="small">Les données sont enregistrées localement dans le téléphone/navigateur utilisé.<br><b>Version 2.4 — calcul délégation uniquement</b></p>
 </div>
 
 <div id="mainApp" class="hidden">
@@ -254,8 +254,6 @@ function readMonth(){
 }
 function setSavedStatus(txt){el("saveStatus").textContent=txt}
 function onStatusChange(day, value){
-  // Le statut est uniquement indicatif : RTT, maladie, congé, etc.
-  // Il ne modifie jamais le quota de délégation.
   onEdit(day);
 }
 function onEdit(day){
@@ -280,25 +278,22 @@ function onHoraireChange(day,value){
   onEdit(day);saveMonthSilent();
 }
 function calcTotals(data){
-  let totalDeleg=0;Object.values(data).forEach(r=>totalDeleg+=parseH(r.deleg));
-  return {totalDeleg,reste:state.droit-totalDeleg};
+  let totalDeleg = 0;
+  Object.values(data).forEach(function(r){ totalDeleg += parseH(r.deleg); });
+  return { totalDeleg: totalDeleg, reste: state.droit - totalDeleg };
 }
 function updateSummary(){
-  const data = readMonth();
-  const totals = getTotals(data);
-  const totalDeleg = totals.totalDeleg;
-  const reste = totals.reste;
-
-  document.getElementById("kpiDeleg").textContent = `${fmt(totalDeleg)}h`;
+  const totals = calcTotals(readMonth());
+  document.getElementById("kpiDeleg").textContent = `${fmt(totals.totalDeleg)}h`;
   const resteEl = document.getElementById("kpiReste");
-  resteEl.textContent = `${fmt(reste)}h`;
-  resteEl.className = reste < 0 ? "warn" : "ok";
+  resteEl.textContent = `${fmt(totals.reste)}h`;
+  resteEl.className = totals.reste < 0 ? "warn" : "ok";
 }
 function saveMonthSilent(){localStorage.setItem(key(),JSON.stringify(readMonth()))}
 function saveMonth(){
   saveMonthSilent();
 
-  const totals = getTotals(readMonth());
+  const totals = calcTotals(readMonth());
   archiveCurrentMonth(totals.totalDeleg, totals.reste);
 
   const status = document.getElementById("saveStatus");
